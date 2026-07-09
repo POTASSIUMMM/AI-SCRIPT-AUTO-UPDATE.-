@@ -11,7 +11,6 @@ local _0x7 = 200
 local _0x8 = false
 local _0x9 = false
 local _0x1A = false
-local _0x23 = false
 
 local _0xA = _0x5.Character or _0x5.CharacterAdded:Wait()
 local _0xB = _0xA:WaitForChild("Humanoid")
@@ -103,29 +102,21 @@ _0xE:CreateInput({
    end,
 })
 
-_0xE:CreateToggle({
-   Name = "God Mode (Auto Heal 100 HP)",
-   CurrentValue = false,
-   Flag = "GodToggle",
-   Callback = function(_0x10)
-      _0x23 = _0x10
-   end,
-})
-
 local function _0x1C(_0x1D)
    if _0x1D == _0x5 then return end
    local function _0x1E(_0x1F)
       if not _0x1A then return end
-      if not _0x1F:FindFirstChild("ESPHighlight") then
-         local _0x20 = Instance.new("Highlight")
+      local _0x20 = _0x1F:FindFirstChild("ESPHighlight")
+      if not _0x20 then
+         _0x20 = Instance.new("Highlight")
          _0x20.Name = "ESPHighlight"
-         _0x20.FillColor = Color3.fromRGB(255, 0, 0)
-         _0x20.OutlineColor = Color3.fromRGB(255, 255, 255)
-         _0x20.FillTransparency = 0.5
-         _0x20.OutlineTransparency = 0
-         _0x20.Adornee = _0x1F
          _0x20.Parent = _0x1F
       end
+      _0x20.FillColor = Color3.fromRGB(48, 252, 255)
+      _0x20.OutlineColor = Color3.fromRGB(255, 0, 0)
+      _0x20.FillTransparency = 0.5
+      _0x20.OutlineTransparency = 0
+      _0x20.Adornee = _0x1F
    end
    if _0x1D.Character then _0x1E(_0x1D.Character) end
    _0x1D.CharacterAdded:Connect(_0x1E)
@@ -190,30 +181,23 @@ _0x24:CreateButton({
    Name = "Fling Targeted Player",
    Callback = function()
       local target = _0x1:FindFirstChild(_0x25)
-      if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and _0xC then
-         local tRoot = target.Character.HumanoidRootPart
+      if target and target.Character then
          local originalPos = _0xC.CFrame
+         local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
          
-         local fv = Instance.new("BodyAngularVelocity")
-         fv.Name = "FlingVelocity"
-         fv.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-         fv.AngularVelocity = Vector3.new(999999, 999999, 999999)
-         fv.Parent = _0xC
-         
-         _0xB.PlatformStand = true
-         
-         local startTime = tick()
-         while tick() - startTime < 1.5 and target.Character and tRoot and _0xC do
-            _0x2.RenderStepped:Wait()
-            _0xC.CFrame = tRoot.CFrame * CFrame.new(0, 0, 0)
-            _0xC.Velocity = Vector3.new(999999, 999999, 999999)
+         if targetRoot then
+            local _0x2A = Instance.new("BodyVelocity")
+            _0x2A.Name = "PushVelocity"
+            _0x2A.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+            _0x2A.Velocity = Vector3.new(0, 999999, 0)
+            _0x2A.Parent = targetRoot
+            
+            _0xC.CFrame = targetRoot.CFrame
+            
+            task.wait(0.2)
+            _0x2A:Destroy()
+            _0xC.CFrame = originalPos
          end
-         
-         fv:Destroy()
-         _0xB.PlatformStand = false
-         _0xC.Velocity = Vector3.new(0, 0, 0)
-         _0xC.RotVelocity = Vector3.new(0, 0, 0)
-         _0xC.CFrame = originalPos
       end
    end,
 })
@@ -235,10 +219,6 @@ _0x3.InputBegan:Connect(function(_0x15, _0x16)
 end)
 
 _0x2.RenderStepped:Connect(function()
-   if _0x23 and _0xB then
-      _0xB.Health = 100
-   end
-
    if _0xB and _0x9 and not _0x8 then
       if _0xB.WalkSpeed ~= _0x6 then
          _0xB.WalkSpeed = _0x6
