@@ -13,6 +13,9 @@ local _0x9 = false
 local _0x1A = false
 local _0x2B = false
 local _0x2C = false
+local _0x2D = false
+local _0x2E = 0.05
+local _0x2F = 0
 
 local _0xA = _0x5.Character or _0x5.CharacterAdded:Wait()
 local _0xB = _0xA:WaitForChild("Humanoid")
@@ -30,6 +33,7 @@ local _0xD = Rayfield:CreateWindow({
 local _0xE = _0xD:CreateTab("Main Controls", nil)
 local _0x1B = _0xD:CreateTab("ESP Controls", nil)
 local _0x24 = _0xD:CreateTab("Target Controls", nil)
+local _0x30 = _0xD:CreateTab("Auto Clicker", nil)
 
 local _0x25 = "Select Player"
 
@@ -101,7 +105,7 @@ _0xE:CreateInput({
       if _0x12 then
          _0x7 = _0x12
       end
-   end,
+   end
 })
 
 local function _0x1C(_0x1D)
@@ -197,6 +201,27 @@ _0x24:CreateToggle({
    end,
 })
 
+_0x30:CreateToggle({
+   Name = "Enable Auto Clicker",
+   CurrentValue = false,
+   Flag = "AutoClickToggle",
+   Callback = function(_0x10)
+      _0x2D = _0x10
+   end,
+})
+
+_0x30:CreateInput({
+   Name = "Click Delay (Seconds)",
+   PlaceholderText = "Default is 0.05",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(_0x11)
+      local _0x12 = tonumber(_0x11)
+      if _0x12 then
+         _0x2E = _0x12
+      end
+   end,
+})
+
 _0x3.InputBegan:Connect(function(_0x15, _0x16)
    if _0x16 then return end
    
@@ -280,6 +305,15 @@ _0x2.RenderStepped:Connect(function()
          if distance <= 100 then
             workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, tHead.Position)
          end
+      end
+   end
+
+   if _0x2D then
+      if tick() - _0x2F >= _0x2E then
+         _0x2F = tick()
+         local _0x31 = game:GetService("VirtualInputManager")
+         _0x31:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+         _0x31:SendMouseButtonEvent(0, 0, 0, false, game, 0)
       end
    end
 end)
