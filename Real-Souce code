@@ -1,0 +1,293 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local _0x1 = game:GetService("Players")
+local _0x2 = game:GetService("RunService")
+local _0x3 = game:GetService("UserInputService")
+local _0x4 = game:GetService("CoreGui")
+local _0x5 = _0x1.LocalPlayer
+
+local _0x6 = 16
+local _0x7 = 200
+local _0x8 = false
+local _0x9 = false
+local _0x1A = false
+local _0x23 = false
+
+local _0xA = _0x5.Character or _0x5.CharacterAdded:Wait()
+local _0xB = _0xA:WaitForChild("Humanoid")
+local _0xC = _0xA:WaitForChild("HumanoidRootPart")
+
+local _0xD = Rayfield:CreateWindow({
+   Name = "Multi Control Panel",
+   LoadingTitle = "Loading Script",
+   LoadingSubtitle = "by Assistant",
+   ConfigurationSaving = { Enabled = false },
+   Discord = { Enabled = false },
+   KeySystem = false
+})
+
+local _0xE = _0xD:CreateTab("Main Controls", nil)
+local _0x1B = _0xD:CreateTab("ESP Controls", nil)
+local _0x24 = _0xD:CreateTab("Fling Controls", nil)
+
+local _0x25 = "Select Player"
+
+_0x5.CharacterAdded:Connect(function(_0xF)
+   _0xA = _0xF
+   _0xB = _0xF:WaitForChild("Humanoid")
+   _0xC = _0xF:WaitForChild("HumanoidRootPart")
+   if _0x9 then
+      _0xB.WalkSpeed = _0x6
+   else
+      _0xB.WalkSpeed = 16
+   end
+end)
+
+_0xE:CreateToggle({
+   Name = "Enable Speed Boost",
+   CurrentValue = false,
+   Flag = "SpeedToggle",
+   Callback = function(_0x10)
+      _0x9 = _0x10
+      if _0xB then
+         if _0x9 then
+            _0xB.WalkSpeed = _0x6
+         else
+            _0xB.WalkSpeed = 16
+         end
+      end
+   end,
+})
+
+_0xE:CreateInput({
+   Name = "Speed Value",
+   PlaceholderText = "Current Speed",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(_0x11)
+      local _0x12 = tonumber(_0x11)
+      if _0x12 then
+         _0x6 = _0x12
+         if _0xB and _0x9 then
+            _0xB.WalkSpeed = _0x6
+         end
+      end
+   end,
+})
+
+_0xE:CreateToggle({
+   Name = "Enable Fly",
+   CurrentValue = false,
+   Flag = "FlyToggle",
+   Callback = function(_0x10)
+      _0x8 = _0x10
+      if not _0x8 then
+         if _0xC then
+            local _0x13 = _0xC:FindFirstChild("FlyBodyPosition")
+            local _0x14 = _0xC:FindFirstChild("FlyBodyGyro")
+            if _0x13 then _0x13:Destroy() end
+            if _0x14 then _0x14:Destroy() end
+         end
+      end
+   end,
+})
+
+_0xE:CreateInput({
+   Name = "Fly Speed Value",
+   PlaceholderText = "Default is 200",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(_0x11)
+      local _0x12 = tonumber(_0x11)
+      if _0x12 then
+         _0x7 = _0x12
+      end
+   end,
+})
+
+_0xE:CreateToggle({
+   Name = "God Mode (Auto Heal 100 HP)",
+   CurrentValue = false,
+   Flag = "GodToggle",
+   Callback = function(_0x10)
+      _0x23 = _0x10
+   end,
+})
+
+local function _0x1C(_0x1D)
+   if _0x1D == _0x5 then return end
+   local function _0x1E(_0x1F)
+      if not _0x1A then return end
+      if not _0x1F:FindFirstChild("ESPHighlight") then
+         local _0x20 = Instance.new("Highlight")
+         _0x20.Name = "ESPHighlight"
+         _0x20.FillColor = Color3.fromRGB(255, 0, 0)
+         _0x20.OutlineColor = Color3.fromRGB(255, 255, 255)
+         _0x20.FillTransparency = 0.5
+         _0x20.OutlineTransparency = 0
+         _0x20.Adornee = _0x1F
+         _0x20.Parent = _0x1F
+      end
+   end
+   if _0x1D.Character then _0x1E(_0x1D.Character) end
+   _0x1D.CharacterAdded:Connect(_0x1E)
+end
+
+local function _0x21()
+   for _, _0x1D in pairs(_0x1:GetPlayers()) do
+      if _0x1D.Character then
+         local _0x22 = _0x1D.Character:FindFirstChild("ESPHighlight")
+         if _0x22 then _0x22:Destroy() end
+      end
+   end
+end
+
+_0x1B:CreateToggle({
+   Name = "Enable Player Highlight ESP",
+   CurrentValue = false,
+   Flag = "EspToggle",
+   Callback = function(_0x10)
+      _0x1A = _0x10
+      if _0x1A then
+         for _, _0x1D in pairs(_0x1:GetPlayers()) do
+            _0x1C(_0x1D)
+         end
+      else
+         _0x21()
+      end
+   end,
+})
+
+_0x1.PlayerAdded:Connect(_0x1C)
+
+local function _0x26()
+   local _0x27 = {}
+   for _, p in pairs(_0x1:GetPlayers()) do
+      if p ~= _0x5 then
+         table.insert(_0x27, p.Name)
+      end
+   end
+   return _0x27
+end
+
+local _0x28 = _0x24:CreateDropdown({
+   Name = "Select Player",
+   Options = _0x26(),
+   CurrentOption = "",
+   MultipleOptions = false,
+   Flag = "FlingPlayerDropdown",
+   Callback = function(_0x29)
+      _0x25 = _0x29[1] or _0x29
+   end,
+})
+
+_0x24:CreateButton({
+   Name = "Refresh Player List",
+   Callback = function()
+      _0x28:Refresh(_0x26())
+   end,
+})
+
+_0x24:CreateButton({
+   Name = "Fling Targeted Player",
+   Callback = function()
+      local target = _0x1:FindFirstChild(_0x25)
+      if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and _0xC then
+         local tRoot = target.Character.HumanoidRootPart
+         local originalPos = _0xC.CFrame
+         
+         local fv = Instance.new("BodyAngularVelocity")
+         fv.Name = "FlingVelocity"
+         fv.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+         fv.AngularVelocity = Vector3.new(999999, 999999, 999999)
+         fv.Parent = _0xC
+         
+         _0xB.PlatformStand = true
+         
+         local startTime = tick()
+         while tick() - startTime < 1.5 and target.Character and tRoot and _0xC do
+            _0x2.RenderStepped:Wait()
+            _0xC.CFrame = tRoot.CFrame * CFrame.new(0, 0, 0)
+            _0xC.Velocity = Vector3.new(999999, 999999, 999999)
+         end
+         
+         fv:Destroy()
+         _0xB.PlatformStand = false
+         _0xC.Velocity = Vector3.new(0, 0, 0)
+         _0xC.RotVelocity = Vector3.new(0, 0, 0)
+         _0xC.CFrame = originalPos
+      end
+   end,
+})
+
+_0x3.InputBegan:Connect(function(_0x15, _0x16)
+   if _0x16 then return end
+   
+   if _0x15.KeyCode == Enum.KeyCode.M then
+      local _0x17 = _0x4:FindFirstChild("Rayfield")
+      if _0x17 then
+         _0x17.Enabled = false
+      end
+   elseif _0x15.KeyCode == Enum.KeyCode.L then
+      local _0x17 = _0x4:FindFirstChild("Rayfield")
+      if _0x17 then
+         _0x17.Enabled = true
+      end
+   end
+end)
+
+_0x2.RenderStepped:Connect(function()
+   if _0x23 and _0xB then
+      _0xB.Health = 100
+   end
+
+   if _0xB and _0x9 and not _0x8 then
+      if _0xB.WalkSpeed ~= _0x6 then
+         _0xB.WalkSpeed = _0x6
+      end
+   elseif _0xB and not _0x9 and not _0x8 then
+      if _0xB.WalkSpeed ~= 16 then
+         _0xB.WalkSpeed = 16
+      end
+   end
+   
+   if _0x8 and _0xC and _0xA and _0xA.Parent then
+      local _0x13 = _0xC:FindFirstChild("FlyBodyPosition") or Instance.new("BodyPosition", _0xC)
+      local _0x14 = _0xC:FindFirstChild("FlyBodyGyro") or Instance.new("BodyGyro", _0xC)
+      
+      _0x13.Name = "FlyBodyPosition"
+      _0x13.maxForce = Vector3.new(100000, 100000, 100000)
+      _0x14.Name = "FlyBodyGyro"
+      _0x14.maxTorque = Vector3.new(100000, 100000, 100000)
+      _0x14.cframe = workspace.CurrentCamera.CFrame
+      
+      local _0x18 = Vector3.new(0, 0, 0)
+      
+      if _0x3:IsKeyDown(Enum.KeyCode.W) then
+         _0x18 = _0x18 + workspace.CurrentCamera.CFrame.LookVector
+      end
+      if _0x3:IsKeyDown(Enum.KeyCode.S) then
+         _0x18 = _0x18 - workspace.CurrentCamera.CFrame.LookVector
+      end
+      if _0x3:IsKeyDown(Enum.KeyCode.A) then
+         _0x18 = _0x18 - workspace.CurrentCamera.CFrame.RightVector
+      end
+      if _0x3:IsKeyDown(Enum.KeyCode.D) then
+         _0x18 = _0x18 + workspace.CurrentCamera.CFrame.RightVector
+      end
+      if _0x3:IsKeyDown(Enum.KeyCode.Space) then
+         _0x18 = _0x18 + Vector3.new(0, 1, 0)
+      end
+      if _0x3:IsKeyDown(Enum.KeyCode.LeftControl) then
+         _0x18 = _0x18 - Vector3.new(0, 1, 0)
+      end
+      
+      _0x13.position = _0xC.Position + (_0x18 * _0x7 * 0.016)
+   end
+   
+   if _0x1A then
+      for _, _0x1D in pairs(_0x1:GetPlayers()) do
+         if _0x1D ~= _0x5 and _0x1D.Character then
+            _0x1C(_0x1D)
+         end
+      end
+   end
+end)
