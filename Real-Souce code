@@ -24,7 +24,7 @@ local _0xC = _0xA:WaitForChild("HumanoidRootPart")
 local _0xD = Rayfield:CreateWindow({
    Name = "Multi Control Panel",
    LoadingTitle = "Loading Script",
-   LoadingSubtitle = "by Assistant",
+   LoadingSubtitle = "by UE scripts",
    ConfigurationSaving = { Enabled = false },
    Discord = { Enabled = false },
    KeySystem = false
@@ -120,7 +120,7 @@ local function _0x1C(_0x1D)
       end
       _0x20.FillColor = Color3.fromRGB(48, 252, 255)
       _0x20.OutlineColor = Color3.fromRGB(255, 0, 0)
-      _0x20.FillTransparency = 0.5
+      _0x20.FillTransparency = 50
       _0x20.OutlineTransparency = 0
       _0x20.Adornee = _0x1F
    end
