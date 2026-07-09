@@ -11,6 +11,8 @@ local _0x7 = 200
 local _0x8 = false
 local _0x9 = false
 local _0x1A = false
+local _0x2B = false
+local _0x2C = false
 
 local _0xA = _0x5.Character or _0x5.CharacterAdded:Wait()
 local _0xB = _0xA:WaitForChild("Humanoid")
@@ -27,7 +29,7 @@ local _0xD = Rayfield:CreateWindow({
 
 local _0xE = _0xD:CreateTab("Main Controls", nil)
 local _0x1B = _0xD:CreateTab("ESP Controls", nil)
-local _0x24 = _0xD:CreateTab("Fling Controls", nil)
+local _0x24 = _0xD:CreateTab("Target Controls", nil)
 
 local _0x25 = "Select Player"
 
@@ -164,7 +166,7 @@ local _0x28 = _0x24:CreateDropdown({
    Options = _0x26(),
    CurrentOption = "",
    MultipleOptions = false,
-   Flag = "FlingPlayerDropdown",
+   Flag = "TargetPlayerDropdown",
    Callback = function(_0x29)
       _0x25 = _0x29[1] or _0x29
    end,
@@ -177,28 +179,21 @@ _0x24:CreateButton({
    end,
 })
 
-_0x24:CreateButton({
-   Name = "Fling Targeted Player",
-   Callback = function()
-      local target = _0x1:FindFirstChild(_0x25)
-      if target and target.Character then
-         local originalPos = _0xC.CFrame
-         local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
-         
-         if targetRoot then
-            local _0x2A = Instance.new("BodyVelocity")
-            _0x2A.Name = "PushVelocity"
-            _0x2A.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-            _0x2A.Velocity = Vector3.new(0, 999999, 0)
-            _0x2A.Parent = targetRoot
-            
-            _0xC.CFrame = targetRoot.CFrame
-            
-            task.wait(0.2)
-            _0x2A:Destroy()
-            _0xC.CFrame = originalPos
-         end
-      end
+_0x24:CreateToggle({
+   Name = "Enable Strafe (Stick to Player)",
+   CurrentValue = false,
+   Flag = "StrafeToggle",
+   Callback = function(_0x10)
+      _0x2B = _0x10
+   end,
+})
+
+_0x24:CreateToggle({
+   Name = "Enable Aim Bot (Head lock within 100 studs)",
+   CurrentValue = false,
+   Flag = "AimbotToggle",
+   Callback = function(_0x10)
+      _0x2C = _0x10
    end,
 })
 
@@ -267,6 +262,23 @@ _0x2.RenderStepped:Connect(function()
       for _, _0x1D in pairs(_0x1:GetPlayers()) do
          if _0x1D ~= _0x5 and _0x1D.Character then
             _0x1C(_0x1D)
+         end
+      end
+   end
+
+   local target = _0x1:FindFirstChild(_0x25)
+   if target and target.Character then
+      local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+      local tHead = target.Character:FindFirstChild("Head")
+      
+      if _0x2B and tRoot and _0xC then
+         _0xC.CFrame = tRoot.CFrame * CFrame.new(0, 0, 2)
+      end
+      
+      if _0x2C and tHead and _0xC then
+         local distance = (_0xC.Position - tHead.Position).Magnitude
+         if distance <= 100 then
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, tHead.Position)
          end
       end
    end
