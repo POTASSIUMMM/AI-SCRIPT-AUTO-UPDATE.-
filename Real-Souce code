@@ -13,17 +13,15 @@ local _0x9 = false
 local _0x1A = false
 local _0x2B = false
 local _0x2C = false
-local _0x32 = false
-local _0x33 = 15
 
 local _0xA = _0x5.Character or _0x5.CharacterAdded:Wait()
 local _0xB = _0xA:WaitForChild("Humanoid")
 local _0xC = _0xA:WaitForChild("HumanoidRootPart")
 
 local _0xD = Rayfield:CreateWindow({
-   Name = "Multi Control Panel",
+   Name = "Panel",
    LoadingTitle = "Loading Script",
-   LoadingSubtitle = "by UE",
+   LoadingSubtitle = "by Vain",
    ConfigurationSaving = { Enabled = false },
    Discord = { Enabled = false },
    KeySystem = false
@@ -64,7 +62,7 @@ _0xE:CreateToggle({
 
 _0xE:CreateInput({
    Name = "Speed Value",
-   PlaceholderText = "Type Here.",
+   PlaceholderText = "Type here.",
    RemoveTextAfterFocusLost = false,
    Callback = function(_0x11)
       local _0x12 = tonumber(_0x11)
@@ -96,33 +94,12 @@ _0xE:CreateToggle({
 
 _0xE:CreateInput({
    Name = "Fly Speed Value",
-   PlaceholderText = Type Here.",
+   PlaceholderText = "Type here.",
    RemoveTextAfterFocusLost = false,
    Callback = function(_0x11)
       local _0x12 = tonumber(_0x11)
       if _0x12 then
          _0x7 = _0x12
-      end
-   end
-})
-
-_0xE:CreateToggle({
-   Name = "Enable Kill Aura",
-   CurrentValue = false,
-   Flag = "KillAuraToggle",
-   Callback = function(_0x10)
-      _0x32 = _0x10
-   end,
-})
-
-_0xE:CreateInput({
-   Name = "Kill Aura Range",
-   PlaceholderText = "Default is 15 studs",
-   RemoveTextAfterFocusLost = false,
-   Callback = function(_0x11)
-      local _0x12 = tonumber(_0x11)
-      if _0x12 then
-         _0x33 = _0x12
       end
    end,
 })
@@ -302,21 +279,6 @@ _0x2.RenderStepped:Connect(function()
          local distance = (_0xC.Position - tHead.Position).Magnitude
          if distance <= 100 then
             workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, tHead.Position)
-         end
-      end
-   end
-
-   if _0x32 and _0xC then
-      for _, _0x1D in pairs(_0x1:GetPlayers()) do
-         if _0x1D ~= _0x5 and _0x1D.Character then
-            local enemyRoot = _0x1D.Character:FindFirstChild("HumanoidRootPart")
-            local enemyHum = _0x1D.Character:FindFirstChild("Humanoid")
-            if enemyRoot and enemyHum and enemyHum.Health > 0 then
-               local dist = (_0xC.Position - enemyRoot.Position).Magnitude
-               if dist <= _0x33 then
-                  enemyHum:TakeDamage(1)
-               end
-            end
          end
       end
    end
