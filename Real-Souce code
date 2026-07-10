@@ -23,7 +23,7 @@ local _0xC = _0xA:WaitForChild("HumanoidRootPart")
 local _0xD = Rayfield:CreateWindow({
    Name = "Multi Control Panel",
    LoadingTitle = "Loading Script",
-   LoadingSubtitle = "by Assistant",
+   LoadingSubtitle = "by UE",
    ConfigurationSaving = { Enabled = false },
    Discord = { Enabled = false },
    KeySystem = false
@@ -64,7 +64,7 @@ _0xE:CreateToggle({
 
 _0xE:CreateInput({
    Name = "Speed Value",
-   PlaceholderText = "Current Speed",
+   PlaceholderText = "Type Here.",
    RemoveTextAfterFocusLost = false,
    Callback = function(_0x11)
       local _0x12 = tonumber(_0x11)
@@ -96,7 +96,7 @@ _0xE:CreateToggle({
 
 _0xE:CreateInput({
    Name = "Fly Speed Value",
-   PlaceholderText = "Default is 200",
+   PlaceholderText = Type Here.",
    RemoveTextAfterFocusLost = false,
    Callback = function(_0x11)
       local _0x12 = tonumber(_0x11)
