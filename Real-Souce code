@@ -13,9 +13,8 @@ local _0x9 = false
 local _0x1A = false
 local _0x2B = false
 local _0x2C = false
-local _0x2D = false
-local _0x2E = 0.05
-local _0x2F = 0
+local _0x32 = false
+local _0x33 = 15
 
 local _0xA = _0x5.Character or _0x5.CharacterAdded:Wait()
 local _0xB = _0xA:WaitForChild("Humanoid")
@@ -24,7 +23,7 @@ local _0xC = _0xA:WaitForChild("HumanoidRootPart")
 local _0xD = Rayfield:CreateWindow({
    Name = "Multi Control Panel",
    LoadingTitle = "Loading Script",
-   LoadingSubtitle = "by UE scripts",
+   LoadingSubtitle = "by Assistant",
    ConfigurationSaving = { Enabled = false },
    Discord = { Enabled = false },
    KeySystem = false
@@ -33,7 +32,6 @@ local _0xD = Rayfield:CreateWindow({
 local _0xE = _0xD:CreateTab("Main Controls", nil)
 local _0x1B = _0xD:CreateTab("ESP Controls", nil)
 local _0x24 = _0xD:CreateTab("Target Controls", nil)
-local _0x30 = _0xD:CreateTab("Auto Clicker", nil)
 
 local _0x25 = "Select Player"
 
@@ -108,6 +106,27 @@ _0xE:CreateInput({
    end
 })
 
+_0xE:CreateToggle({
+   Name = "Enable Kill Aura",
+   CurrentValue = false,
+   Flag = "KillAuraToggle",
+   Callback = function(_0x10)
+      _0x32 = _0x10
+   end,
+})
+
+_0xE:CreateInput({
+   Name = "Kill Aura Range",
+   PlaceholderText = "Default is 15 studs",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(_0x11)
+      local _0x12 = tonumber(_0x11)
+      if _0x12 then
+         _0x33 = _0x12
+      end
+   end,
+})
+
 local function _0x1C(_0x1D)
    if _0x1D == _0x5 then return end
    local function _0x1E(_0x1F)
@@ -120,7 +139,7 @@ local function _0x1C(_0x1D)
       end
       _0x20.FillColor = Color3.fromRGB(48, 252, 255)
       _0x20.OutlineColor = Color3.fromRGB(255, 0, 0)
-      _0x20.FillTransparency = 50
+      _0x20.FillTransparency = 0.5
       _0x20.OutlineTransparency = 0
       _0x20.Adornee = _0x1F
    end
@@ -198,27 +217,6 @@ _0x24:CreateToggle({
    Flag = "AimbotToggle",
    Callback = function(_0x10)
       _0x2C = _0x10
-   end,
-})
-
-_0x30:CreateToggle({
-   Name = "Enable Auto Clicker",
-   CurrentValue = false,
-   Flag = "AutoClickToggle",
-   Callback = function(_0x10)
-      _0x2D = _0x10
-   end,
-})
-
-_0x30:CreateInput({
-   Name = "Click Delay (Seconds)",
-   PlaceholderText = "Default is 0.05",
-   RemoveTextAfterFocusLost = false,
-   Callback = function(_0x11)
-      local _0x12 = tonumber(_0x11)
-      if _0x12 then
-         _0x2E = _0x12
-      end
    end,
 })
 
@@ -308,12 +306,18 @@ _0x2.RenderStepped:Connect(function()
       end
    end
 
-   if _0x2D then
-      if tick() - _0x2F >= _0x2E then
-         _0x2F = tick()
-         local _0x31 = game:GetService("VirtualInputManager")
-         _0x31:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-         _0x31:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+   if _0x32 and _0xC then
+      for _, _0x1D in pairs(_0x1:GetPlayers()) do
+         if _0x1D ~= _0x5 and _0x1D.Character then
+            local enemyRoot = _0x1D.Character:FindFirstChild("HumanoidRootPart")
+            local enemyHum = _0x1D.Character:FindFirstChild("Humanoid")
+            if enemyRoot and enemyHum and enemyHum.Health > 0 then
+               local dist = (_0xC.Position - enemyRoot.Position).Magnitude
+               if dist <= _0x33 then
+                  enemyHum:TakeDamage(1)
+               end
+            end
+         end
       end
    end
 end)
