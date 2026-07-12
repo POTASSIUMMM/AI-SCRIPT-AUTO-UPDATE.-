@@ -1,285 +1,634 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
-local _0x1 = game:GetService("Players")
-local _0x2 = game:GetService("RunService")
-local _0x3 = game:GetService("UserInputService")
-local _0x4 = game:GetService("CoreGui")
-local _0x5 = _0x1.LocalPlayer
+local player = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
 
-local _0x6 = 16
-local _0x7 = 200
-local _0x8 = false
-local _0x9 = false
-local _0x1A = false
-local _0x2B = false
-local _0x2C = false
+local state = {
+    speedEnabled = false,
+    jumpEnabled = false,
+    espEnabled = false,
+    aimbotEnabled = false,
+    tpClickEnabled = false,
+    safeMode = false
+}
 
-local _0xA = _0x5.Character or _0x5.CharacterAdded:Wait()
-local _0xB = _0xA:WaitForChild("Humanoid")
-local _0xC = _0xA:WaitForChild("HumanoidRootPart")
+local speedValue = 50
+local jumpValue = 100
+local espColor = Color3.fromRGB(255, 90, 90)
+local aimFOV = 120
+local smoothness = 5
+local aiming = false
 
-local _0xD = Rayfield:CreateWindow({
-   Name = "Panel",
-   LoadingTitle = "Loading Script",
-   LoadingSubtitle = "by Vain",
-   ConfigurationSaving = { Enabled = false },
-   Discord = { Enabled = false },
-   KeySystem = false
-})
+local function getHumanoid()
+    local character = player.Character
+    if character then
+        return character:FindFirstChildOfClass("Humanoid")
+    end
+    return nil
+end
 
-local _0xE = _0xD:CreateTab("Main Controls", nil)
-local _0x1B = _0xD:CreateTab("ESP Controls", nil)
-local _0x24 = _0xD:CreateTab("Target Controls", nil)
+local function getSafeSpeed(value)
+    if state.safeMode then
+        return math.min(value, 45)
+    end
+    return value
+end
 
-local _0x25 = "Select Player"
+local function setSpeed(value)
+    local humanoid = getHumanoid()
+    if humanoid then humanoid.WalkSpeed = getSafeSpeed(value) end
+end
 
-_0x5.CharacterAdded:Connect(function(_0xF)
-   _0xA = _0xF
-   _0xB = _0xF:WaitForChild("Humanoid")
-   _0xC = _0xF:WaitForChild("HumanoidRootPart")
-   if _0x9 then
-      _0xB.WalkSpeed = _0x6
-   else
-      _0xB.WalkSpeed = 16
-   end
+local function setJumpPower(value)
+    local humanoid = getHumanoid()
+    if humanoid then humanoid.JumpPower = value end
+end
+
+player.CharacterAdded:Connect(function()
+    task.wait(1)
+    if state.speedEnabled then setSpeed(speedValue) end
+    if state.jumpEnabled then setJumpPower(jumpValue) end
 end)
 
-_0xE:CreateToggle({
-   Name = "Enable Speed Boost",
-   CurrentValue = false,
-   Flag = "SpeedToggle",
-   Callback = function(_0x10)
-      _0x9 = _0x10
-      if _0xB then
-         if _0x9 then
-            _0xB.WalkSpeed = _0x6
-         else
-            _0xB.WalkSpeed = 16
-         end
-      end
-   end,
-})
+local function createESP(targetPlayer)
+    if targetPlayer == player then return end
+    local character = targetPlayer.Character
+    if not character then return end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    if character:FindFirstChild("ESPHighlight") then return end
 
-_0xE:CreateInput({
-   Name = "Speed Value",
-   PlaceholderText = "Type here.",
-   RemoveTextAfterFocusLost = false,
-   Callback = function(_0x11)
-      local _0x12 = tonumber(_0x11)
-      if _0x12 then
-         _0x6 = _0x12
-         if _0xB and _0x9 then
-            _0xB.WalkSpeed = _0x6
-         end
-      end
-   end,
-})
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESPHighlight"
+    highlight.FillColor = espColor
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.FillTransparency = 0.6
+    highlight.OutlineTransparency = 0
+    highlight.Parent = character
 
-_0xE:CreateToggle({
-   Name = "Enable Fly",
-   CurrentValue = false,
-   Flag = "FlyToggle",
-   Callback = function(_0x10)
-      _0x8 = _0x10
-      if not _0x8 then
-         if _0xC then
-            local _0x13 = _0xC:FindFirstChild("FlyBodyPosition")
-            local _0x14 = _0xC:FindFirstChild("FlyBodyGyro")
-            if _0x13 then _0x13:Destroy() end
-            if _0x14 then _0x14:Destroy() end
-         end
-      end
-   end,
-})
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "ESPName"
+    billboard.Size = UDim2.new(0, 100, 0, 30)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = character:FindFirstChild("Head") or humanoidRootPart
 
-_0xE:CreateInput({
-   Name = "Fly Speed Value",
-   PlaceholderText = "Type here.",
-   RemoveTextAfterFocusLost = false,
-   Callback = function(_0x11)
-      local _0x12 = tonumber(_0x11)
-      if _0x12 then
-         _0x7 = _0x12
-      end
-   end,
-})
-
-local function _0x1C(_0x1D)
-   if _0x1D == _0x5 then return end
-   local function _0x1E(_0x1F)
-      if not _0x1A then return end
-      local _0x20 = _0x1F:FindFirstChild("ESPHighlight")
-      if not _0x20 then
-         _0x20 = Instance.new("Highlight")
-         _0x20.Name = "ESPHighlight"
-         _0x20.Parent = _0x1F
-      end
-      _0x20.FillColor = Color3.fromRGB(48, 252, 255)
-      _0x20.OutlineColor = Color3.fromRGB(255, 0, 0)
-      _0x20.FillTransparency = 0.5
-      _0x20.OutlineTransparency = 0
-      _0x20.Adornee = _0x1F
-   end
-   if _0x1D.Character then _0x1E(_0x1D.Character) end
-   _0x1D.CharacterAdded:Connect(_0x1E)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextStrokeTransparency = 0
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = 14
+    label.Text = targetPlayer.Name
+    label.Parent = billboard
 end
 
-local function _0x21()
-   for _, _0x1D in pairs(_0x1:GetPlayers()) do
-      if _0x1D.Character then
-         local _0x22 = _0x1D.Character:FindFirstChild("ESPHighlight")
-         if _0x22 then _0x22:Destroy() end
-      end
-   end
+local function removeESP(targetPlayer)
+    local character = targetPlayer.Character
+    if not character then return end
+    local highlight = character:FindFirstChild("ESPHighlight")
+    if highlight then highlight:Destroy() end
+    local head = character:FindFirstChild("Head")
+    if head then
+        local billboard = head:FindFirstChild("ESPName")
+        if billboard then billboard:Destroy() end
+    end
 end
 
-_0x1B:CreateToggle({
-   Name = "Enable Player Highlight ESP",
-   CurrentValue = false,
-   Flag = "EspToggle",
-   Callback = function(_0x10)
-      _0x1A = _0x10
-      if _0x1A then
-         for _, _0x1D in pairs(_0x1:GetPlayers()) do
-            _0x1C(_0x1D)
-         end
-      else
-         _0x21()
-      end
-   end,
-})
-
-_0x1.PlayerAdded:Connect(_0x1C)
-
-local function _0x26()
-   local _0x27 = {}
-   for _, p in pairs(_0x1:GetPlayers()) do
-      if p ~= _0x5 then
-         table.insert(_0x27, p.Name)
-      end
-   end
-   return _0x27
+local function refreshESP()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player then
+            if state.espEnabled then
+                if plr.Character then createESP(plr) end
+            else
+                if plr.Character then removeESP(plr) end
+            end
+        end
+    end
 end
 
-local _0x28 = _0x24:CreateDropdown({
-   Name = "Select Player",
-   Options = _0x26(),
-   CurrentOption = "",
-   MultipleOptions = false,
-   Flag = "TargetPlayerDropdown",
-   Callback = function(_0x29)
-      _0x25 = _0x29[1] or _0x29
-   end,
-})
-
-_0x24:CreateButton({
-   Name = "Refresh Player List",
-   Callback = function()
-      _0x28:Refresh(_0x26())
-   end,
-})
-
-_0x24:CreateToggle({
-   Name = "Enable Strafe (Stick to Player)",
-   CurrentValue = false,
-   Flag = "StrafeToggle",
-   Callback = function(_0x10)
-      _0x2B = _0x10
-   end,
-})
-
-_0x24:CreateToggle({
-   Name = "Enable Aim Bot (Head lock within 100 studs)",
-   CurrentValue = false,
-   Flag = "AimbotToggle",
-   Callback = function(_0x10)
-      _0x2C = _0x10
-   end,
-})
-
-_0x3.InputBegan:Connect(function(_0x15, _0x16)
-   if _0x16 then return end
-   
-   if _0x15.KeyCode == Enum.KeyCode.M then
-      local _0x17 = _0x4:FindFirstChild("Rayfield")
-      if _0x17 then
-         _0x17.Enabled = false
-      end
-   elseif _0x15.KeyCode == Enum.KeyCode.L then
-      local _0x17 = _0x4:FindFirstChild("Rayfield")
-      if _0x17 then
-         _0x17.Enabled = true
-      end
-   end
+Players.PlayerAdded:Connect(function(newPlayer)
+    newPlayer.CharacterAdded:Connect(function()
+        task.wait(1)
+        if state.espEnabled then createESP(newPlayer) end
+    end)
 end)
 
-_0x2.RenderStepped:Connect(function()
-   if _0xB and _0x9 and not _0x8 then
-      if _0xB.WalkSpeed ~= _0x6 then
-         _0xB.WalkSpeed = _0x6
-      end
-   elseif _0xB and not _0x9 and not _0x8 then
-      if _0xB.WalkSpeed ~= 16 then
-         _0xB.WalkSpeed = 16
-      end
-   end
-   
-   if _0x8 and _0xC and _0xA and _0xA.Parent then
-      local _0x13 = _0xC:FindFirstChild("FlyBodyPosition") or Instance.new("BodyPosition", _0xC)
-      local _0x14 = _0xC:FindFirstChild("FlyBodyGyro") or Instance.new("BodyGyro", _0xC)
-      
-      _0x13.Name = "FlyBodyPosition"
-      _0x13.maxForce = Vector3.new(100000, 100000, 100000)
-      _0x14.Name = "FlyBodyGyro"
-      _0x14.maxTorque = Vector3.new(100000, 100000, 100000)
-      _0x14.cframe = workspace.CurrentCamera.CFrame
-      
-      local _0x18 = Vector3.new(0, 0, 0)
-      
-      if _0x3:IsKeyDown(Enum.KeyCode.W) then
-         _0x18 = _0x18 + workspace.CurrentCamera.CFrame.LookVector
-      end
-      if _0x3:IsKeyDown(Enum.KeyCode.S) then
-         _0x18 = _0x18 - workspace.CurrentCamera.CFrame.LookVector
-      end
-      if _0x3:IsKeyDown(Enum.KeyCode.A) then
-         _0x18 = _0x18 - workspace.CurrentCamera.CFrame.RightVector
-      end
-      if _0x3:IsKeyDown(Enum.KeyCode.D) then
-         _0x18 = _0x18 + workspace.CurrentCamera.CFrame.RightVector
-      end
-      if _0x3:IsKeyDown(Enum.KeyCode.Space) then
-         _0x18 = _0x18 + Vector3.new(0, 1, 0)
-      end
-      if _0x3:IsKeyDown(Enum.KeyCode.LeftControl) then
-         _0x18 = _0x18 - Vector3.new(0, 1, 0)
-      end
-      
-      _0x13.position = _0xC.Position + (_0x18 * _0x7 * 0.016)
-   end
-   
-   if _0x1A then
-      for _, _0x1D in pairs(_0x1:GetPlayers()) do
-         if _0x1D ~= _0x5 and _0x1D.Character then
-            _0x1C(_0x1D)
-         end
-      end
-   end
+for _, plr in pairs(Players:GetPlayers()) do
+    if plr ~= player then
+        plr.CharacterAdded:Connect(function()
+            task.wait(1)
+            if state.espEnabled then createESP(plr) end
+        end)
+    end
+end
 
-   local target = _0x1:FindFirstChild(_0x25)
-   if target and target.Character then
-      local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-      local tHead = target.Character:FindFirstChild("Head")
-      
-      if _0x2B and tRoot and _0xC then
-         _0xC.CFrame = tRoot.CFrame * CFrame.new(0, 0, 2)
-      end
-      
-      if _0x2C and tHead and _0xC then
-         local distance = (_0xC.Position - tHead.Position).Magnitude
-         if distance <= 100 then
-            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, tHead.Position)
-         end
-      end
-   end
+local function getClosestTarget()
+    local closest = nil
+    local closestDist = aimFOV
+    local viewportSize = camera.ViewportSize
+    local screenCenter = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player then
+            local character = plr.Character
+            if character then
+                local part = character:FindFirstChild("Head")
+                if part then
+                    local screenPos, onScreen = camera:WorldToViewportPoint(part.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
+                        if dist < closestDist then
+                            closestDist = dist
+                            closest = part
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if not state.aimbotEnabled then return end
+    if not aiming then return end
+
+    local target = getClosestTarget()
+    if target then
+        local currentCFrame = camera.CFrame
+        local goalCFrame = CFrame.new(currentCFrame.Position, target.Position)
+        local baseAlpha = math.clamp(smoothness / 10, 0.05, 1)
+        if state.safeMode then
+            baseAlpha = baseAlpha * (0.6 + math.random() * 0.3)
+        end
+        camera.CFrame = currentCFrame:Lerp(goalCFrame, baseAlpha)
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        aiming = true
+    end
+
+    if state.tpClickEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 and not gameProcessed then
+        local mouse = player:GetMouse()
+        local target = mouse.Hit
+        local character = player.Character
+        local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+        if target and humanoidRootPart then
+            humanoidRootPart.CFrame = CFrame.new(target.Position + Vector3.new(0, 3, 0))
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        aiming = false
+    end
+end)
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CleanMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 280, 0, 460)
+mainFrame.Position = UDim2.new(0, 20, 0, 20)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+mainFrame.BackgroundTransparency = 0.25
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(255, 255, 255)
+mainStroke.Transparency = 0.85
+mainStroke.Thickness = 1
+mainStroke.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -20, 0, 34)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(240, 240, 245)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 15
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Text = "메뉴"
+title.Parent = mainFrame
+
+local divider = Instance.new("Frame")
+divider.Size = UDim2.new(1, -20, 0, 1)
+divider.Position = UDim2.new(0, 10, 0, 34)
+divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+divider.BackgroundTransparency = 0.9
+divider.BorderSizePixel = 0
+divider.Parent = mainFrame
+
+local contentFrame = Instance.new("ScrollingFrame")
+contentFrame.Size = UDim2.new(1, -16, 1, -44)
+contentFrame.Position = UDim2.new(0, 8, 0, 40)
+contentFrame.BackgroundTransparency = 1
+contentFrame.BorderSizePixel = 0
+contentFrame.ScrollBarThickness = 3
+contentFrame.ScrollBarImageTransparency = 0.5
+contentFrame.CanvasSize = UDim2.new(0, 0, 0, 1100)
+contentFrame.Parent = mainFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 8)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = contentFrame
+
+local function createSection(order, labelText, height)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, height)
+    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.BackgroundTransparency = 0.94
+    frame.BorderSizePixel = 0
+    frame.LayoutOrder = order
+    frame.Parent = contentFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = frame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Transparency = 0.9
+    stroke.Thickness = 1
+    stroke.Parent = frame
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 0, 18)
+    label.Position = UDim2.new(0, 10, 0, 6)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(190, 190, 200)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Text = labelText
+    label.Parent = frame
+
+    return frame
+end
+
+local function createToggleButton(section, labelText, yPos)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -20, 0, 28)
+    button.Position = UDim2.new(0, 10, 0, yPos)
+    button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundTransparency = 0.9
+    button.TextColor3 = Color3.fromRGB(230, 230, 235)
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 12
+    button.Text = labelText .. " OFF"
+    button.Parent = section
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = button
+
+    return button
+end
+
+local function createValueBox(section, defaultValue, yPos)
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(1, -20, 0, 24)
+    box.Position = UDim2.new(0, 10, 0, yPos)
+    box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    box.BackgroundTransparency = 0.92
+    box.TextColor3 = Color3.fromRGB(230, 230, 235)
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 12
+    box.Text = tostring(defaultValue)
+    box.ClearTextOnFocus = false
+    box.Parent = section
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = box
+
+    return box
+end
+
+local speedSection = createSection(1, "스피드", 96)
+local speedButton = createToggleButton(speedSection, "스피드", 28)
+local speedBox = createValueBox(speedSection, speedValue, 62)
+
+local jumpSection = createSection(2, "점프", 96)
+local jumpButton = createToggleButton(jumpSection, "점프", 28)
+local jumpBox = createValueBox(jumpSection, jumpValue, 62)
+
+local espSection = createSection(3, "ESP", 96)
+local espButton = createToggleButton(espSection, "ESP", 28)
+
+local espColorButton = Instance.new("TextButton")
+espColorButton.Size = UDim2.new(1, -20, 0, 24)
+espColorButton.Position = UDim2.new(0, 10, 0, 62)
+espColorButton.BackgroundColor3 = espColor
+espColorButton.BackgroundTransparency = 0.2
+espColorButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espColorButton.Font = Enum.Font.Gotham
+espColorButton.TextSize = 12
+espColorButton.Text = "색상 변경"
+espColorButton.Parent = espSection
+
+local espColorCorner = Instance.new("UICorner")
+espColorCorner.CornerRadius = UDim.new(0, 6)
+espColorCorner.Parent = espColorButton
+
+local espColors = {
+    Color3.fromRGB(255, 90, 90),
+    Color3.fromRGB(90, 255, 140),
+    Color3.fromRGB(90, 170, 255),
+    Color3.fromRGB(255, 230, 90),
+    Color3.fromRGB(210, 90, 255)
+}
+local espColorIndex = 1
+
+local aimbotSection = createSection(4, "에임봇", 124)
+local aimbotButton = createToggleButton(aimbotSection, "에임봇", 28)
+
+local aimFOVLabel = Instance.new("TextLabel")
+aimFOVLabel.Size = UDim2.new(1, -20, 0, 14)
+aimFOVLabel.Position = UDim2.new(0, 10, 0, 62)
+aimFOVLabel.BackgroundTransparency = 1
+aimFOVLabel.TextColor3 = Color3.fromRGB(180, 180, 190)
+aimFOVLabel.Font = Enum.Font.Gotham
+aimFOVLabel.TextSize = 11
+aimFOVLabel.TextXAlignment = Enum.TextXAlignment.Left
+aimFOVLabel.Text = "FOV: " .. aimFOV
+aimFOVLabel.Parent = aimbotSection
+
+local aimFOVBox = createValueBox(aimbotSection, aimFOV, 80)
+
+local tpSection = createSection(5, "텔레포트", 96)
+local tpClickButton = createToggleButton(tpSection, "클릭 텔레포트", 28)
+
+local tpSpawnButton = Instance.new("TextButton")
+tpSpawnButton.Size = UDim2.new(1, -20, 0, 24)
+tpSpawnButton.Position = UDim2.new(0, 10, 0, 62)
+tpSpawnButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+tpSpawnButton.BackgroundTransparency = 0.9
+tpSpawnButton.TextColor3 = Color3.fromRGB(230, 230, 235)
+tpSpawnButton.Font = Enum.Font.Gotham
+tpSpawnButton.TextSize = 12
+tpSpawnButton.Text = "스폰 위치로 이동"
+tpSpawnButton.Parent = tpSection
+
+local tpSpawnCorner = Instance.new("UICorner")
+tpSpawnCorner.CornerRadius = UDim.new(0, 6)
+tpSpawnCorner.Parent = tpSpawnButton
+
+local safetySection = createSection(6, "안전 모드", 60)
+local safetyButton = createToggleButton(safetySection, "안전 모드", 28)
+
+local playerListSection = createSection(7, "플레이어 목록", 30)
+playerListSection.Size = UDim2.new(1, 0, 0, 200)
+
+local playerListScroll = Instance.new("ScrollingFrame")
+playerListScroll.Size = UDim2.new(1, -20, 1, -34)
+playerListScroll.Position = UDim2.new(0, 10, 0, 28)
+playerListScroll.BackgroundTransparency = 1
+playerListScroll.BorderSizePixel = 0
+playerListScroll.ScrollBarThickness = 2
+playerListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+playerListScroll.Parent = playerListSection
+
+local playerListLayout = Instance.new("UIListLayout")
+playerListLayout.Padding = UDim.new(0, 4)
+playerListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+playerListLayout.Parent = playerListScroll
+
+local playerRows = {}
+
+local function createPlayerRow(targetPlayer)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, 0, 0, 22)
+    row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    row.BackgroundTransparency = 0.94
+    row.BorderSizePixel = 0
+    row.Parent = playerListScroll
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 5)
+    corner.Parent = row
+
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(0.55, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 8, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(225, 225, 230)
+    nameLabel.Font = Enum.Font.Gotham
+    nameLabel.TextSize = 11
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.Text = targetPlayer.Name
+    nameLabel.Parent = row
+
+    local distLabel = Instance.new("TextLabel")
+    distLabel.Size = UDim2.new(0.45, -8, 1, 0)
+    distLabel.Position = UDim2.new(0.55, 0, 0, 0)
+    distLabel.BackgroundTransparency = 1
+    distLabel.TextColor3 = Color3.fromRGB(170, 170, 180)
+    distLabel.Font = Enum.Font.Gotham
+    distLabel.TextSize = 11
+    distLabel.TextXAlignment = Enum.TextXAlignment.Right
+    distLabel.Text = "-"
+    distLabel.Parent = row
+
+    return row, distLabel
+end
+
+local function refreshPlayerList()
+    for _, row in pairs(playerRows) do
+        row.frame:Destroy()
+    end
+    playerRows = {}
+
+    local index = 0
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player then
+            index = index + 1
+            local row, distLabel = createPlayerRow(plr)
+            row.LayoutOrder = index
+            table.insert(playerRows, {player = plr, frame = row, distLabel = distLabel})
+        end
+    end
+
+    playerListScroll.CanvasSize = UDim2.new(0, 0, 0, index * 26)
+end
+
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(refreshPlayerList)
+refreshPlayerList()
+
+RunService.Heartbeat:Connect(function()
+    local myCharacter = player.Character
+    local myRoot = myCharacter and myCharacter:FindFirstChild("HumanoidRootPart")
+
+    for _, entry in pairs(playerRows) do
+        local targetCharacter = entry.player.Character
+        local targetRoot = targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart")
+        if myRoot and targetRoot then
+            local dist = math.floor((myRoot.Position - targetRoot.Position).Magnitude)
+            entry.distLabel.Text = dist .. "m"
+        else
+            entry.distLabel.Text = "-"
+        end
+    end
+end)
+
+speedButton.MouseButton1Click:Connect(function()
+    state.speedEnabled = not state.speedEnabled
+    if state.speedEnabled then
+        speedButton.Text = "스피드 ON"
+        speedButton.BackgroundColor3 = Color3.fromRGB(90, 200, 120)
+        speedButton.BackgroundTransparency = 0.3
+        setSpeed(speedValue)
+    else
+        speedButton.Text = "스피드 OFF"
+        speedButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        speedButton.BackgroundTransparency = 0.9
+        setSpeed(16)
+    end
+end)
+
+speedBox.FocusLost:Connect(function()
+    local num = tonumber(speedBox.Text)
+    if num then
+        speedValue = num
+        if state.speedEnabled then setSpeed(speedValue) end
+    else
+        speedBox.Text = tostring(speedValue)
+    end
+end)
+
+jumpButton.MouseButton1Click:Connect(function()
+    state.jumpEnabled = not state.jumpEnabled
+    if state.jumpEnabled then
+        jumpButton.Text = "점프 ON"
+        jumpButton.BackgroundColor3 = Color3.fromRGB(90, 200, 120)
+        jumpButton.BackgroundTransparency = 0.3
+        setJumpPower(jumpValue)
+    else
+        jumpButton.Text = "점프 OFF"
+        jumpButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        jumpButton.BackgroundTransparency = 0.9
+        setJumpPower(50)
+    end
+end)
+
+jumpBox.FocusLost:Connect(function()
+    local num = tonumber(jumpBox.Text)
+    if num then
+        jumpValue = num
+        if state.jumpEnabled then setJumpPower(jumpValue) end
+    else
+        jumpBox.Text = tostring(jumpValue)
+    end
+end)
+
+espButton.MouseButton1Click:Connect(function()
+    state.espEnabled = not state.espEnabled
+    if state.espEnabled then
+        espButton.Text = "ESP ON"
+        espButton.BackgroundColor3 = Color3.fromRGB(90, 200, 120)
+        espButton.BackgroundTransparency = 0.3
+    else
+        espButton.Text = "ESP OFF"
+        espButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        espButton.BackgroundTransparency = 0.9
+    end
+    refreshESP()
+end)
+
+espColorButton.MouseButton1Click:Connect(function()
+    espColorIndex = espColorIndex + 1
+    if espColorIndex > #espColors then espColorIndex = 1 end
+    espColor = espColors[espColorIndex]
+    espColorButton.BackgroundColor3 = espColor
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            local highlight = plr.Character:FindFirstChild("ESPHighlight")
+            if highlight then highlight.FillColor = espColor end
+        end
+    end
+end)
+
+aimbotButton.MouseButton1Click:Connect(function()
+    state.aimbotEnabled = not state.aimbotEnabled
+    if state.aimbotEnabled then
+        aimbotButton.Text = "에임봇 ON"
+        aimbotButton.BackgroundColor3 = Color3.fromRGB(90, 200, 120)
+        aimbotButton.BackgroundTransparency = 0.3
+    else
+        aimbotButton.Text = "에임봇 OFF"
+        aimbotButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        aimbotButton.BackgroundTransparency = 0.9
+    end
+end)
+
+aimFOVBox.FocusLost:Connect(function()
+    local num = tonumber(aimFOVBox.Text)
+    if num then
+        aimFOV = num
+        aimFOVLabel.Text = "FOV: " .. aimFOV
+    else
+        aimFOVBox.Text = tostring(aimFOV)
+    end
+end)
+
+tpClickButton.MouseButton1Click:Connect(function()
+    state.tpClickEnabled = not state.tpClickEnabled
+    if state.tpClickEnabled then
+        tpClickButton.Text = "클릭 텔레포트 ON"
+        tpClickButton.BackgroundColor3 = Color3.fromRGB(90, 200, 120)
+        tpClickButton.BackgroundTransparency = 0.3
+    else
+        tpClickButton.Text = "클릭 텔레포트 OFF"
+        tpClickButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        tpClickButton.BackgroundTransparency = 0.9
+    end
+end)
+
+tpSpawnButton.MouseButton1Click:Connect(function()
+    local character = player.Character
+    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+    local spawnLocation = Workspace:FindFirstChildOfClass("SpawnLocation")
+    if humanoidRootPart and spawnLocation then
+        humanoidRootPart.CFrame = spawnLocation.CFrame + Vector3.new(0, 3, 0)
+    end
+end)
+
+safetyButton.MouseButton1Click:Connect(function()
+    state.safeMode = not state.safeMode
+    if state.safeMode then
+        safetyButton.Text = "안전 모드 ON"
+        safetyButton.BackgroundColor3 = Color3.fromRGB(90, 200, 120)
+        safetyButton.BackgroundTransparency = 0.3
+        if state.speedEnabled then setSpeed(speedValue) end
+    else
+        safetyButton.Text = "안전 모드 OFF"
+        safetyButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        safetyButton.BackgroundTransparency = 0.9
+        if state.speedEnabled then setSpeed(speedValue) end
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        screenGui.Enabled = not screenGui.Enabled
+    end
 end)
